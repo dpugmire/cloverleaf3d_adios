@@ -179,7 +179,7 @@ SUBROUTINE hydro
       ENDIF
 !      CALL ascent_close(my_ascent)
 !      CALL ascent_destroy(my_ascent)
-!      CALL clover_finalize
+      CALL clover_finalize
 
       EXIT
 

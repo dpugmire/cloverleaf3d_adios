@@ -34,6 +34,8 @@ MODULE clover_module
 
   USE data_module
   USE definitions_module
+  USE adiosio
+  
 #if defined(USE_MOD)
   USE MPI
 #endif
@@ -63,19 +65,24 @@ SUBROUTINE clover_abort
 END SUBROUTINE clover_abort
 
 SUBROUTINE clover_finalize
-
+  USE adiosio
+  
   INTEGER :: err
+  
+  CALL finalize_adiosio()
 
   CLOSE(g_out)
   CALL FLUSH(0)
   CALL FLUSH(6)
   CALL FLUSH(g_out)
+  write(*,*) "----- DRP: MPI_FINALIZE"
   CALL MPI_FINALIZE(err)
 
 END SUBROUTINE clover_finalize
 
 SUBROUTINE clover_init_comms
 
+  USE adiosio
   IMPLICIT NONE
 
   INTEGER :: err,rank,size
@@ -97,6 +104,7 @@ SUBROUTINE clover_init_comms
 
   parallel%boss_task=0
   parallel%max_task=size
+  CALL init_adiosio()
 
 END SUBROUTINE clover_init_comms
 

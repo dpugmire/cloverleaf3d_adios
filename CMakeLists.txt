@@ -53,7 +53,8 @@ set(clover_sources
     viscosity_kernel.f90
     visit.F90
     timer_c.c
-    clover_main.cpp)
+    clover_main.cpp
+    adiosio.f90)
 
 set(CMAKE_Fortran_FLAGS "-DUSE_MOD")
 
