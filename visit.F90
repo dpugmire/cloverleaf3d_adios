@@ -28,6 +28,7 @@ SUBROUTINE visit()
   USE update_halo_module
   USE viscosity_module
   USE ideal_gas_module
+  USE adiosio
 
 #if defined(USE_MOD)
   use mpi
@@ -45,6 +46,8 @@ SUBROUTINE visit()
   INTEGER :: gnxc,gnyc,gnzc,gnxv,gnyv,gnzv
   INTEGER :: ghost_flag
   REAL(KIND=8)    :: temp_var
+  integer(kind=8), dimension(1) :: shape_dims, start_dims, count_dims
+
 
   CHARACTER(len=80)           :: name
   CHARACTER(len=10)           :: chunk_name,step_name
@@ -74,6 +77,7 @@ SUBROUTINE visit()
 
   INTEGER(8) :: nnodes, ncells
   REAL(8), ALLOCATABLE :: ghost_flags(:,:,:)
+  INTEGER :: ierr
 
   name = 'clover'
 
@@ -102,6 +106,8 @@ SUBROUTINE visit()
   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+
   IF(profiler_on) kernel_time=timer()
   DO c = 1, chunks_per_task
     IF(chunks(c)%task.EQ.parallel%task) THEN
@@ -122,6 +128,30 @@ SUBROUTINE visit()
       ncells = gnxc * gnyc * gnzc
       nnodes = gnxv * gnyv * gnzv
 
+      shape_dims(1) = parallel%max_task * gnxv
+      start_dims(1) = parallel%task * gnxv
+      count_dims(1) = gnxv
+
+      write (*,*) "calling adios put "
+      write (*,*) gnxv
+      write (*,*) chunks_per_task
+      write (*,*) chunks_per_task, shape_dims, start_dims, count_dims
+
+      CALL adios2_begin_step(adios2Engine, err)
+
+      CALL put_adiosio1D(coordsX_var, parallel%task, parallel%max_task, gnxv*1_8, chunks(c)%field%vertexx)
+      CALL put_adiosio1D(coordsY_var, parallel%task, parallel%max_task, gnyv*1_8, chunks(c)%field%vertexy)
+      CALL put_adiosio1D(coordsZ_var, parallel%task, parallel%max_task, gnzv*1_8, chunks(c)%field%vertexz)
+
+      CALL put_adiosio3D(density_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%density0)
+      CALL put_adiosio3D(energy_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%density0)
+      CALL put_adiosio3D(pressure_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%density0)
+
+      CALL put_adiosio3D(velocityX_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%xvel0)
+      CALL put_adiosio3D(velocityY_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%yvel0)
+      CALL put_adiosio3D(velocityZ_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%zvel0)
+
+      CALL adios2_end_step(adios2Engine, err)
       !
       ! Ascent in situ visualization
       !
