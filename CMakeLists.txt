@@ -1,15 +1,11 @@
-###############################################################################
-# Copyright (c) Lawrence Livermore National Security, LLC and other Ascent
-# Project developers. See top-level LICENSE AND COPYRIGHT files for dates and
-# other details. No copyright assignment is required to contribute to Ascent.
-###############################################################################
+project(cloverLeaf3d LANGUAGES C CXX Fortran)
 
-###############################################################################
-#
-# Cloverleaf3D CMake Build for Ascent
-#
-###############################################################################
+cmake_minimum_required(VERSION 3.29)
 
+#set(CMAKE_MODULE_PATH /Users/dpn/sw/adios2/master/install/lib/cmake/adios2)
+#set(ADIOS_DIR /Users/dpn/sw/adios2/master/install/lib/cmake/adios2)
+find_package(MPI REQUIRED)
+find_package(ADIOS2 REQUIRED)
 
 set(clover_sources
     PdV.f90
@@ -59,65 +55,13 @@ set(clover_sources
     timer_c.c
     clover_main.cpp)
 
-# cloverleaf3d reqs fortran and mpi
-if(MPI_FOUND AND FORTRAN_FOUND)
-    # copy over the input deck
-    configure_file(clover.in ${CMAKE_CURRENT_BINARY_DIR}/clover.in COPYONLY)
-    configure_file(ascent_actions.yaml ${CMAKE_CURRENT_BINARY_DIR}/ascent_actions.yaml COPYONLY)
-    configure_file(ascent_options.yaml ${CMAKE_CURRENT_BINARY_DIR}/ascent_options.yaml COPYONLY)
+set(CMAKE_Fortran_FLAGS "-DUSE_MOD")
 
-    if(MPI_Fortran_USE_MODULE )
-        set(clover_compile_flags "-DUSE_MOD")
-    else()
-        set(clover_compile_flags "-DUSE_MPIF")
-    endif()
-
-    set(clover_par_deps ascent_mpi mpi)
-    if(OPENMP_FOUND)
-      list(APPEND clover_par_deps openmp)
-    endif()
-
-    blt_add_executable(
-        NAME        cloverleaf3d_par
-        SOURCES     ${clover_sources}
-        DEPENDS_ON  ${clover_par_deps}
-        OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
-
-    # the intel compiler will auto create a fortran main, which will
-    # conflict with the cpp main, use -nofor_main to avoid this
-    blt_append_custom_compiler_flag(
-            FLAGS_VAR clover_link_flags
-            INTEL   "-nofor_main"
-            INTELLLVM   "-nofor-main"
-        )
-
-    # these flags are needeed for gfortran 10 to avoid
-    # compile errors with the mpi interface
-    if(CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER_EQUAL "10" AND Fortran_COMPILER_FAMILY_IS_GNU)
-        target_compile_options(cloverleaf3d_par PUBLIC
-                               "$<$<COMPILE_LANGUAGE:Fortran>:-fallow-invalid-boz>")
-        target_compile_options(cloverleaf3d_par PUBLIC
-                               "$<$<COMPILE_LANGUAGE:Fortran>:-fallow-argument-mismatch>")
-    endif()
-
-    blt_add_target_compile_flags(TO cloverleaf3d_par FLAGS ${clover_compile_flags})
-    blt_add_target_link_flags(TO cloverleaf3d_par FLAGS ${clover_link_flags})
+add_executable(cloverLeaf3d ${clover_sources})
 
 
-    # install target for clover mpi
-    install(TARGETS cloverleaf3d_par
-            EXPORT  ascent
-            LIBRARY DESTINATION examples/ascent/proxies/cloverleaf3d
-            ARCHIVE DESTINATION examples/ascent/proxies/cloverleaf3d
-            RUNTIME DESTINATION examples/ascent/proxies/cloverleaf3d
-    )
+target_include_directories(cloverLeaf3d PRIVATE ${ADIOS_INCLUDE_DIRS})
+target_link_libraries(cloverLeaf3d PRIVATE ${ADIOS_LIBRARIES})
 
-    install(FILES ASCENT_README.md
-                  clover.in
-                  ascent_actions.json
-                  ascent_actions_contour_tree_energy.json
-                  ascent_actions_contour_tree_velocity.json
-                  ascent_options.json
-            DESTINATION examples/ascent/proxies/cloverleaf3d)
-
-endif()
+target_compile_definitions(cloverLeaf3d PRIVATE ADIOS2)
+target_link_libraries(cloverLeaf3d  adios2::fortran_mpi MPI::MPI_Fortran)

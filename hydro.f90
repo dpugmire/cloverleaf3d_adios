@@ -31,8 +31,8 @@ SUBROUTINE hydro
   USE advection_module
   USE reset_field_module
   USE iso_c_binding
-  USE conduit
-  USE ascent
+!  USE conduit
+!  USE ascent
   IMPLICIT NONE
 
   INTEGER         :: loc(1)
@@ -43,21 +43,21 @@ SUBROUTINE hydro
   REAL(KIND=8)    :: first_step,second_step
   REAL(KIND=8)    :: kernel_total,totals(parallel%max_task)
 
-  TYPE(C_PTR) my_ascent
-  TYPE(C_PTR) ascent_opts
+!  TYPE(C_PTR) my_ascent
+!  TYPE(C_PTR) ascent_opts
 
-  my_ascent   = ascent_create()
-  ascent_opts = conduit_node_create()
-  CALL conduit_node_set_path_int32(ascent_opts,"mpi_comm",MPI_COMM_WORLD)
-  ! To Enable Web Streaming Add, change to "true"
-  CALL conduit_node_set_path_char8_str(ascent_opts,"web/stream", "false")
-  CALL conduit_node_set_path_char8_str(ascent_opts,"pipeline/type", "vtkm")
-  CALL ascent_open(my_ascent,ascent_opts)
+!  my_ascent   = ascent_create()
+!  ascent_opts = conduit_node_create()
+!  CALL conduit_node_set_path_int32(ascent_opts,"mpi_comm",MPI_COMM_WORLD)
+!  ! To Enable Web Streaming Add, change to "true"
+!  CALL conduit_node_set_path_char8_str(ascent_opts,"web/stream", "false")
+!  CALL conduit_node_set_path_char8_str(ascent_opts,"pipeline/type", "vtkm")
+!  CALL ascent_open(my_ascent,ascent_opts)
 
   timerstart = timer()
   DO
 
-    CALL ascent_timer_start(C_CHAR_"CLOVER_MAIN_LOOP"//C_NULL_CHAR)
+!    CALL ascent_timer_start(C_CHAR_"CLOVER_MAIN_LOOP"//C_NULL_CHAR)
     step_time = timer()
 
     step = step + 1
@@ -80,14 +80,15 @@ SUBROUTINE hydro
 
     time = time + dt
 
-    CALL ascent_timer_stop(C_CHAR_"CLOVER_MAIN_LOOP"//C_NULL_CHAR)
+!    CALL ascent_timer_stop(C_CHAR_"CLOVER_MAIN_LOOP"//C_NULL_CHAR)
 
     IF(summary_frequency.NE.0) THEN
       IF(MOD(step, summary_frequency).EQ.0) CALL field_summary()
     ENDIF
-    IF(visit_frequency.NE.0) THEN
-      IF(MOD(step, visit_frequency).EQ.0) CALL visit(my_ascent)
-    ENDIF
+! DRP: visit call is here.
+!    IF(visit_frequency.NE.0) THEN
+!      IF(MOD(step, visit_frequency).EQ.0) CALL visit(my_ascent)
+!    ENDIF
 
     ! Sometimes there can be a significant start up cost that appears in the first step.
     ! Sometimes it is due to the number of MPI tasks, or OpenCL kernel compilation.
@@ -176,9 +177,9 @@ SUBROUTINE hydro
           WRITE(g_out,'(a23,2f16.4)')"The Rest              :",wall_clock-kernel_total,100.0*(wall_clock-kernel_total)/wall_clock
         ENDIF
       ENDIF
-      CALL ascent_close(my_ascent)
-      CALL ascent_destroy(my_ascent)
-      CALL clover_finalize
+!      CALL ascent_close(my_ascent)
+!      CALL ascent_destroy(my_ascent)
+!      CALL clover_finalize
 
       EXIT
 
