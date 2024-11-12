@@ -139,13 +139,16 @@ SUBROUTINE visit()
 
       CALL adios2_begin_step(adios2Engine, err)
 
-      CALL put_adiosio1D(coordsX_var, parallel%task, parallel%max_task, gnxv*1_8, chunks(c)%field%vertexx)
-      CALL put_adiosio1D(coordsY_var, parallel%task, parallel%max_task, gnyv*1_8, chunks(c)%field%vertexy)
-      CALL put_adiosio1D(coordsZ_var, parallel%task, parallel%max_task, gnzv*1_8, chunks(c)%field%vertexz)
+      IF(first_call) THEN
+        CALL put_adiosio1D(coordsX_var, parallel%task, parallel%max_task, gnxv*1_8, chunks(c)%field%vertexx)
+        CALL put_adiosio1D(coordsY_var, parallel%task, parallel%max_task, gnyv*1_8, chunks(c)%field%vertexy)
+        CALL put_adiosio1D(coordsZ_var, parallel%task, parallel%max_task, gnzv*1_8, chunks(c)%field%vertexz)
+        first_call=.FALSE.
+      ENDIF
 
       CALL put_adiosio3D(density_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%density0)
-      CALL put_adiosio3D(energy_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%density0)
-      CALL put_adiosio3D(pressure_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%density0)
+      CALL put_adiosio3D(energy_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%energy0)
+      CALL put_adiosio3D(pressure_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%pressure)
 
       CALL put_adiosio3D(velocityX_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%xvel0)
       CALL put_adiosio3D(velocityY_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%yvel0)

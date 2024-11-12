@@ -1,0 +1,4 @@
+cmake \
+ -DCMAKE_BUILD_TYPE=Debug \
+ -DADIOS2_DIR=/Users/dpn/sw/adios2/master/install/lib/cmake/adios2 \
+..
