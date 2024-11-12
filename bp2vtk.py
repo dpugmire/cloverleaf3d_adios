@@ -5,8 +5,14 @@ from vtk.util.numpy_support import numpy_to_vtk
 
 def readArray(f, nm, nameIt=False) :
     adiosVar = f.read(nm)
+    if adiosVar.dtype == np.float64 :
+        adiosVar = adiosVar.astype(np.float32)
+
     if len(adiosVar) > 1 :
         adiosVar = np.ravel(adiosVar)
+    print(nm, adiosVar.shape, adiosVar.dtype, adiosVar.min(), adiosVar.max())
+    adiosVar[np.abs(adiosVar) < 1e-8] = 0
+    print(nm, adiosVar.shape, adiosVar.dtype, adiosVar.min(), adiosVar.max())
     #print(nm, adiosVar.shape)
     arr = vtk.util.numpy_support.numpy_to_vtk(adiosVar, deep=True, array_type=vtk.VTK_FLOAT)
     if nameIt : arr.SetName(nm)
@@ -46,18 +52,18 @@ ycoords = readArray(f, 'coordsY')
 zcoords = readArray(f, 'coordsZ')
 f.close()
 
-with adios2.Stream('./output.bp', 'r') as f :
-    numSteps = f.num_steps()
-    for step in range(numSteps) :
-        f.begin_step()
-        print('step= ', step)
-        varDensity = readArray(f, 'density', True)
-        varEnergy = readArray(f, 'energy', True)
-        varPressure = readArray(f, 'pressure', True)
-        varVelX = readArray(f, 'velocityX', True)
-        varVelY = readArray(f, 'velocityY', True)
-        varVelZ = readArray(f, 'velocityZ', True)
+f = adios2.Stream('./output.bp', 'r')
+numSteps = f.num_steps()
+for step in range(numSteps) :
+    f.begin_step()
+    print('step= ', step)
+    varDensity = readArray(f, 'density', True)
+    varEnergy = readArray(f, 'energy', True)
+    varPressure = readArray(f, 'pressure', True)
+    varVelX = readArray(f, 'velocityX', True)
+    varVelY = readArray(f, 'velocityY', True)
+    varVelZ = readArray(f, 'velocityZ', True)
 
-        grid = makeGrid((xcoords, ycoords, zcoords), (nx,ny,nz), (varDensity, varEnergy, varPressure), (varVelX, varVelY, varVelZ))
-        dumpGrid(grid, step)
-        f.end_step()
+    grid = makeGrid((xcoords, ycoords, zcoords), (nx,ny,nz), (varDensity, varEnergy, varPressure), (varVelX, varVelY, varVelZ))
+    dumpGrid(grid, step)
+    f.end_step()
