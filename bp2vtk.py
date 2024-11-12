@@ -32,6 +32,7 @@ def makeGrid(coords, dims, cellVars, ptVars, ghostZoneVar) :
     grid.SetYCoordinates(coords[1])
     grid.SetZCoordinates(coords[2])
 
+    ghostZoneVar.SetName('vtkGhostCells')
     grid.GetCellData().AddArray(ghostZoneVar)
 
     for var in cellVars :
@@ -63,20 +64,6 @@ def createVisitFile(numSteps, numBlocks) :
 
 
 xcoords, ycoords, zcoords = (None,None,None)
-
-if False :
-    f = adios2.FileReader('./output.bp')
-
-    x = f.read('coordsX')
-    y = f.read('coordsY')
-    z = f.read('coordsZ')
-    gz = f.read('ghost_zones')
-    nx,ny,nz = (x.shape[0], y.shape[0], z.shape[0])
-    xcoords = readArray(f, 'coordsX')
-    ycoords = readArray(f, 'coordsY')
-    zcoords = readArray(f, 'coordsZ')
-    ghostZones = readArray(f, 'ghost_zones', True)
-    f.close()
 
 f = adios2.Stream('./output.bp', 'r')
 numSteps = f.num_steps()
