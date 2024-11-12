@@ -128,38 +128,6 @@ SUBROUTINE visit()
       ncells = gnxc * gnyc * gnzc
       nnodes = gnxv * gnyv * gnzv
 
-      shape_dims(1) = parallel%max_task * gnxv
-      start_dims(1) = parallel%task * gnxv
-      count_dims(1) = gnxv
-
-      write (*,*) "calling adios put "
-      write (*,*) gnxv
-      write (*,*) chunks_per_task
-      write (*,*) chunks_per_task, shape_dims, start_dims, count_dims
-
-      CALL adios2_begin_step(adios2Engine, err)
-
-      IF(first_call) THEN
-        CALL put_adiosio1D(coordsX_var, parallel%task, parallel%max_task, gnxv*1_8, chunks(c)%field%vertexx)
-        CALL put_adiosio1D(coordsY_var, parallel%task, parallel%max_task, gnyv*1_8, chunks(c)%field%vertexy)
-        CALL put_adiosio1D(coordsZ_var, parallel%task, parallel%max_task, gnzv*1_8, chunks(c)%field%vertexz)
-        first_call=.FALSE.
-      ENDIF
-
-      CALL put_adiosio3D(density_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%density0)
-      CALL put_adiosio3D(energy_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%energy0)
-      CALL put_adiosio3D(pressure_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%pressure)
-
-      CALL put_adiosio3D(velocityX_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%xvel0)
-      CALL put_adiosio3D(velocityY_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%yvel0)
-      CALL put_adiosio3D(velocityZ_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%zvel0)
-
-      CALL adios2_end_step(adios2Engine, err)
-      !
-      ! Ascent in situ visualization
-      !
-!      CALL ascent_timer_start(C_CHAR_"COPY_DATA"//C_NULL_CHAR)
-
       ALLOCATE(ghost_flags(0:gnxc-1,0:gnyc-1,0:gnzc-1))
       DO l=0,gnzc-1
         DO k=0, gnyc-1
@@ -188,6 +156,42 @@ SUBROUTINE visit()
           ENDDO
         ENDDO
       ENDDO
+
+      shape_dims(1) = parallel%max_task * gnxv
+      start_dims(1) = parallel%task * gnxv
+      count_dims(1) = gnxv
+
+      !write (*,*) "calling adios put "
+      !write (*,*) gnxv
+      !write (*,*) chunks_per_task
+      !write (*,*) chunks_per_task, shape_dims, start_dims, count_dims
+
+      CALL adios2_begin_step(adios2Engine, err)
+
+      IF(first_call) THEN
+        CALL put_adiosio1D(coordsX_var, parallel%task, parallel%max_task, gnxv*1_8, chunks(c)%field%vertexx)
+        CALL put_adiosio1D(coordsY_var, parallel%task, parallel%max_task, gnyv*1_8, chunks(c)%field%vertexy)
+        CALL put_adiosio1D(coordsZ_var, parallel%task, parallel%max_task, gnzv*1_8, chunks(c)%field%vertexz)
+        CALL put_adiosio3D(ghostzone_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, ghost_flags)
+
+        first_call=.FALSE.
+      ENDIF
+
+      CALL put_adiosio3D(density_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%density0)
+      CALL put_adiosio3D(energy_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%energy0)
+      CALL put_adiosio3D(pressure_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, chunks(c)%field%pressure)
+
+      CALL put_adiosio3D(velocityX_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%xvel0)
+      CALL put_adiosio3D(velocityY_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%yvel0)
+      CALL put_adiosio3D(velocityZ_var, parallel%task, parallel%max_task, gnxv*1_8, gnyv*1_8, gnzv*1_8, chunks(c)%field%zvel0)
+      CALL adios2_end_step(adios2Engine, err)
+
+
+
+      !
+      ! Ascent in situ visualization
+      !
+!      CALL ascent_timer_start(C_CHAR_"COPY_DATA"//C_NULL_CHAR)
 
 !      sim_data = conduit_node_create()
 !      CALL conduit_node_set_path_float64(sim_data,"state/time", time)

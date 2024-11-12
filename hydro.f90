@@ -90,7 +90,6 @@ SUBROUTINE hydro
 !      IF(MOD(step, visit_frequency).EQ.0) CALL visit(my_ascent)
 !    ENDIF
 
-    write (*,*) "----------------------- STEP -------------"
     IF(visit_frequency.NE.0) THEN
       IF(MOD(step, visit_frequency).EQ.0) CALL visit()
     ENDIF

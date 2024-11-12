@@ -12,7 +12,7 @@ module adiosio
     !! variables
     type(adios2_variable) :: step_var
     type(adios2_variable) :: coordsX_var, coordsY_var, coordsZ_var
-    type(adios2_variable) :: density_var, energy_var, pressure_var
+    type(adios2_variable) :: density_var, energy_var, pressure_var, ghostzone_var
     type(adios2_variable) :: velocityX_var, velocityY_var, velocityZ_var
 
 contains
@@ -25,12 +25,11 @@ subroutine init_adiosio()
     implicit none
     integer*4 :: err
 
-    write(*,*) "----- DRP: init_adiosio"
+    !write(*,*) "----- DRP: init_adiosio"
     !MPI_COMM_WORLD
     !call adios2_init(adios2Obj, "xmlstring", ...)
 
     call adios2_init(adios2Obj, MPI_COMM_WORLD, err);
-
 
     !call adios2_init(adios2obj, app_comm, err)
     !if (.not.adios2obj%valid) then
@@ -49,6 +48,7 @@ subroutine init_adiosio()
     call adios2_define_variable(density_var, adios2IO, "density", adios2_type_real8, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
     call adios2_define_variable(energy_var, adios2IO, "energy", adios2_type_real8, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
     call adios2_define_variable(pressure_var, adios2IO, "pressure", adios2_type_real8, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(ghostzone_var, adios2IO, "ghost_zones", adios2_type_real8, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
 
     !velocity
     call adios2_define_variable(velocityX_var, adios2IO, "velocityX", adios2_type_real8, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
@@ -63,7 +63,7 @@ subroutine finalize_adiosio()
     implicit none
     integer*4 :: err
     ! close the engine now if it was not closed yet
-    write(*,*) "----- DRP: finalize_adiosio"
+    !write(*,*) "----- DRP: finalize_adiosio"
 
     if (adios2Engine%valid) then
         call adios2_close(adios2Engine, err)

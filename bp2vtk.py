@@ -3,8 +3,12 @@ import numpy as np
 import vtk, sys, math
 from vtk.util.numpy_support import numpy_to_vtk
 
-def readArray(f, nm, nameIt=False) :
-    adiosVar = f.read(nm)
+def readArray(f, nm, nameIt=False, blockId=-1) :
+    if blockId < 0 :
+        adiosVar = f.read(nm)
+    else :
+        adiosVar = f.read(nm, blockId=blockId)
+
     if adiosVar.dtype == np.float64 :
         adiosVar = adiosVar.astype(np.float32)
 
@@ -19,12 +23,14 @@ def readArray(f, nm, nameIt=False) :
 
     return arr
 
-def makeGrid(coords, dims, cellVars, ptVars) :
+def makeGrid(coords, dims, cellVars, ptVars, ghostZoneVar) :
     grid = vtk.vtkRectilinearGrid()
     grid.SetDimensions(dims[0], dims[1], dims[2])
     grid.SetXCoordinates(coords[0])
     grid.SetYCoordinates(coords[1])
     grid.SetZCoordinates(coords[2])
+
+    grid.GetCellData().AddArray(ghostZoneVar)
 
     for var in cellVars :
         grid.GetCellData().AddArray(var)
@@ -40,20 +46,27 @@ def dumpGrid(grid, step) :
     writer.SetInputData(grid)
     writer.Write()
 
+
+
 xcoords, ycoords, zcoords = (None,None,None)
 f = adios2.FileReader('./output.bp')
 
 x = f.read('coordsX')
 y = f.read('coordsY')
 z = f.read('coordsZ')
+gz = f.read('ghost_zones')
 nx,ny,nz = (x.shape[0], y.shape[0], z.shape[0])
 xcoords = readArray(f, 'coordsX')
 ycoords = readArray(f, 'coordsY')
 zcoords = readArray(f, 'coordsZ')
+ghostZones = readArray(f, 'ghost_zones', True)
 f.close()
 
 f = adios2.Stream('./output.bp', 'r')
 numSteps = f.num_steps()
+numBlocks = len(f.all_blocks_info('density')[0])
+print('numBlocks= ', numBlocks)
+
 for step in range(numSteps) :
     f.begin_step()
     print('step= ', step)
@@ -64,6 +77,6 @@ for step in range(numSteps) :
     varVelY = readArray(f, 'velocityY', True)
     varVelZ = readArray(f, 'velocityZ', True)
 
-    grid = makeGrid((xcoords, ycoords, zcoords), (nx,ny,nz), (varDensity, varEnergy, varPressure), (varVelX, varVelY, varVelZ))
+    grid = makeGrid((xcoords, ycoords, zcoords), (nx,ny,nz), (varDensity, varEnergy, varPressure), (varVelX, varVelY, varVelZ), ghostZones)
     dumpGrid(grid, step)
     f.end_step()
