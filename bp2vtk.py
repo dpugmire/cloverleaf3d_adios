@@ -4,10 +4,12 @@ import vtk, sys, math
 from vtk.util.numpy_support import numpy_to_vtk
 
 def readArray(f, nm, nameIt=False, blockId=-1) :
-    if blockId < 0 :
-        adiosVar = f.read(nm)
-    else :
-        adiosVar = f.read(nm, blockId=blockId)
+    #print('read: ', nm, blockId)
+
+    adiosVar = f.inquire_variable(nm)
+    if blockId >= 0 :
+        adiosVar.set_block_selection(blockId)
+    adiosVar = f.read(nm)
 
     if adiosVar.dtype == np.float64 :
         adiosVar = adiosVar.astype(np.float32)
@@ -38,45 +40,78 @@ def makeGrid(coords, dims, cellVars, ptVars, ghostZoneVar) :
         grid.GetPointData().AddArray(var)
     return grid
 
-def dumpGrid(grid, step) :
-    fname = 'grid.%02d.vtk' % step
+def getGridFileName(step, blockId) :
+    fname = 'vtk/grid_%03d.%03d.vtk' % (step, blockId)
+    return fname
+
+def dumpGrid(grid, step, blockId) :
+    fname = getGridFileName(step, blockId)
     writer = vtk.vtkDataSetWriter()
     writer.SetFileVersion(42)
     writer.SetFileName(fname)
     writer.SetInputData(grid)
     writer.Write()
 
+def createVisitFile(numSteps, numBlocks) :
+    visitFileName = 'grid.visit'
+    f = open(visitFileName, 'w')
+    f.write('!NBLOCKS %d\n' % numBlocks)
+    for step in range(numSteps) :
+        for b in range(numBlocks) :
+            gridFileName = getGridFileName(step, b)
+            f.write('%s\n' % gridFileName)
 
 
 xcoords, ycoords, zcoords = (None,None,None)
-f = adios2.FileReader('./output.bp')
 
-x = f.read('coordsX')
-y = f.read('coordsY')
-z = f.read('coordsZ')
-gz = f.read('ghost_zones')
-nx,ny,nz = (x.shape[0], y.shape[0], z.shape[0])
-xcoords = readArray(f, 'coordsX')
-ycoords = readArray(f, 'coordsY')
-zcoords = readArray(f, 'coordsZ')
-ghostZones = readArray(f, 'ghost_zones', True)
-f.close()
+if False :
+    f = adios2.FileReader('./output.bp')
+
+    x = f.read('coordsX')
+    y = f.read('coordsY')
+    z = f.read('coordsZ')
+    gz = f.read('ghost_zones')
+    nx,ny,nz = (x.shape[0], y.shape[0], z.shape[0])
+    xcoords = readArray(f, 'coordsX')
+    ycoords = readArray(f, 'coordsY')
+    zcoords = readArray(f, 'coordsZ')
+    ghostZones = readArray(f, 'ghost_zones', True)
+    f.close()
 
 f = adios2.Stream('./output.bp', 'r')
 numSteps = f.num_steps()
 numBlocks = len(f.all_blocks_info('density')[0])
 print('numBlocks= ', numBlocks)
 
+xcoords, ycoords, zcoords, ghostZones = ([], [], [], [])
+
 for step in range(numSteps) :
     f.begin_step()
     print('step= ', step)
-    varDensity = readArray(f, 'density', True)
-    varEnergy = readArray(f, 'energy', True)
-    varPressure = readArray(f, 'pressure', True)
-    varVelX = readArray(f, 'velocityX', True)
-    varVelY = readArray(f, 'velocityY', True)
-    varVelZ = readArray(f, 'velocityZ', True)
 
-    grid = makeGrid((xcoords, ycoords, zcoords), (nx,ny,nz), (varDensity, varEnergy, varPressure), (varVelX, varVelY, varVelZ), ghostZones)
-    dumpGrid(grid, step)
+    #first step, read in coords and ghost zones.
+    if (step == 0) :
+        createVisitFile(numSteps, numBlocks)
+
+        for bi in range(numBlocks) :
+            xcoords.append(readArray(f, 'coordsX', False, bi))
+            ycoords.append(readArray(f, 'coordsY', False, bi))
+            zcoords.append(readArray(f, 'coordsZ', False, bi))
+            ghostZones.append(readArray(f, 'ghost_zones', True, bi))
+
+
+    for bi in range(numBlocks) :
+        nx = xcoords[bi].GetNumberOfValues()
+        ny = ycoords[bi].GetNumberOfValues()
+        nz = zcoords[bi].GetNumberOfValues()
+
+        varDensity = readArray(f, 'density', True, bi)
+        varEnergy = readArray(f, 'energy', True, bi)
+        varPressure = readArray(f, 'pressure', True, bi)
+        varVelX = readArray(f, 'velocityX', True, bi)
+        varVelY = readArray(f, 'velocityY', True, bi)
+        varVelZ = readArray(f, 'velocityZ', True, bi)
+
+        grid = makeGrid((xcoords[bi], ycoords[bi], zcoords[bi]), (nx,ny,nz), (varDensity, varEnergy, varPressure), (varVelX, varVelY, varVelZ), ghostZones[bi])
+        dumpGrid(grid, step, bi)
     f.end_step()
