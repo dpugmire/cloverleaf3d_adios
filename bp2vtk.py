@@ -10,9 +10,9 @@ def readArray(f, nm, nameIt=False) :
 
     if len(adiosVar) > 1 :
         adiosVar = np.ravel(adiosVar)
-    print(nm, adiosVar.shape, adiosVar.dtype, adiosVar.min(), adiosVar.max())
+    #print(nm, adiosVar.shape, adiosVar.dtype, adiosVar.min(), adiosVar.max())
     adiosVar[np.abs(adiosVar) < 1e-8] = 0
-    print(nm, adiosVar.shape, adiosVar.dtype, adiosVar.min(), adiosVar.max())
+    #print(nm, adiosVar.shape, adiosVar.dtype, adiosVar.min(), adiosVar.max())
     #print(nm, adiosVar.shape)
     arr = vtk.util.numpy_support.numpy_to_vtk(adiosVar, deep=True, array_type=vtk.VTK_FLOAT)
     if nameIt : arr.SetName(nm)
