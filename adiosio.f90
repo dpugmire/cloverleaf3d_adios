@@ -40,20 +40,30 @@ subroutine init_adiosio()
     call adios2_open(adios2Engine, adios2IO, "output.bp", adios2_mode_write, err)
     call adios2_define_variable(step_var, adios2IO, "step", adios2_type_integer4, err)
     !XYZ coords
-    call adios2_define_variable(coordsX_var, adios2IO, "coordsX", adios2_type_real4, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
-    call adios2_define_variable(coordsY_var, adios2IO, "coordsY", adios2_type_real4, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
-    call adios2_define_variable(coordsZ_var, adios2IO, "coordsZ", adios2_type_real4, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(coordsX_var, adios2IO, "coordsX", adios2_type_real4, 1, &
+         (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(coordsY_var, adios2IO, "coordsY", adios2_type_real4, 1, &
+         (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(coordsZ_var, adios2IO, "coordsZ", adios2_type_real4, 1, &
+         (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
 
     !scalar values
-    call adios2_define_variable(density_var, adios2IO, "density", adios2_type_real, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
-    call adios2_define_variable(energy_var, adios2IO, "energy", adios2_type_real, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
-    call adios2_define_variable(pressure_var, adios2IO, "pressure", adios2_type_real, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
-    call adios2_define_variable(ghostzone_var, adios2IO, "ghost_zones", adios2_type_real, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(density_var, adios2IO, "density", adios2_type_real, 1, &
+         (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(energy_var, adios2IO, "energy", adios2_type_real, 1, &
+         (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(pressure_var, adios2IO, "pressure", adios2_type_real, 1, &
+         (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(ghostzone_var, adios2IO, "ghost_zones", adios2_type_real, 1, &
+         (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
 
     !velocity
-    call adios2_define_variable(velocityX_var, adios2IO, "velocityX", adios2_type_real, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
-    call adios2_define_variable(velocityY_var, adios2IO, "velocityY", adios2_type_real, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
-    call adios2_define_variable(velocityZ_var, adios2IO, "velocityZ", adios2_type_real, 1, (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(velocityX_var, adios2IO, "velocityX", adios2_type_real, 1, &
+         (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(velocityY_var, adios2IO, "velocityY", adios2_type_real, 1, &
+         (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
+    call adios2_define_variable(velocityZ_var, adios2IO, "velocityZ", adios2_type_real, 1, &
+         (/ 20_8 /), (/ 16_8 /), (/4_8 /), .FALSE., err)
 
 
 end subroutine init_adiosio
