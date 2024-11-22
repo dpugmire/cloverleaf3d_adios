@@ -168,12 +168,12 @@ SUBROUTINE visit()
 
       CALL adios2_begin_step(adios2Engine, err)
 
+      CALL put_adiosio1D(coordsX_var, parallel%task, parallel%max_task, gnxv*1_8, chunks(c)%field%vertexx)
+      CALL put_adiosio1D(coordsY_var, parallel%task, parallel%max_task, gnyv*1_8, chunks(c)%field%vertexy)
+      CALL put_adiosio1D(coordsZ_var, parallel%task, parallel%max_task, gnzv*1_8, chunks(c)%field%vertexz)
+      CALL put_adiosio3D(ghostzone_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, ghost_flags)
+        
       IF(first_call) THEN
-        CALL put_adiosio1D(coordsX_var, parallel%task, parallel%max_task, gnxv*1_8, chunks(c)%field%vertexx)
-        CALL put_adiosio1D(coordsY_var, parallel%task, parallel%max_task, gnyv*1_8, chunks(c)%field%vertexy)
-        CALL put_adiosio1D(coordsZ_var, parallel%task, parallel%max_task, gnzv*1_8, chunks(c)%field%vertexz)
-        CALL put_adiosio3D(ghostzone_var, parallel%task, parallel%max_task, gnxc*1_8, gnyc*1_8, gnzc*1_8, ghost_flags)
-
         first_call=.FALSE.
       ENDIF
 
