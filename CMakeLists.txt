@@ -1,6 +1,6 @@
 project(cloverLeaf3d LANGUAGES C CXX Fortran)
 
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.26)
 
 #set(CMAKE_MODULE_PATH /Users/dpn/sw/adios2/master/install/lib/cmake/adios2)
 #set(ADIOS_DIR /Users/dpn/sw/adios2/master/install/lib/cmake/adios2)
